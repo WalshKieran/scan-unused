@@ -1,0 +1,67 @@
+{% block header %}
+To: {% block address %}{{ owner }}@{{ args.email_domain }}
+{% endblock %}
+Subject: {% block subject %}Expiring files in {{ root_dir }} ({{ root_size }})
+{% endblock %}
+Content-Type: text/html; charset=utf-8
+MIME-Version: 1.0
+{% endblock %}
+
+{% block content %}
+    <html>
+        <head>
+        <style>
+            table {
+                width:100%;
+            }
+            table, th, td {
+                border: 1px solid black;
+                border-collapse: collapse;
+            }
+            th, td {
+                padding: 15px;
+                text-align: left;
+            }
+            table#t01 tr:nth-child(even) {
+                background-color: #eee;
+            }
+            table#t01 tr:nth-child(odd) {
+            background-color: #fff;
+            }
+            table#t01 th {
+                background-color: grey;
+                color: white;
+            }
+        </style>
+        </head>
+        <body>
+            <H5>
+                {% if args.email_days %}
+                    The following {{ nodes_count }} files/folders will be DELETED in {{ args.email_days }} days if they continue to be unused:
+                {% else %}
+                    The following {{ nodes_count }} files/folders will be DELETED when they reach {{ args.days }} days of not being accessed:
+                {% endif %}
+            </H5>
+        <p>
+        <table id="t01">
+            <tr>
+                <th>Path</th>
+                <th>size</th>
+                <th>last accessed</th>
+            </tr>
+            {% for node in nodes[:args.email_limit] %}
+                <tr>
+                    <td>{{ node.get_path() }}</td>
+                    <td>{{ node.get_size_str() }}</td>
+                    <td>{{ node.get_last_access_str() }}</td>
+                </tr>
+            {% endfor %}
+            {% if nodes_count > args.email_limit %}
+                <tr>
+                    <td colspan="3">...</td>
+                </tr>
+            {% endif %}
+            </table>
+        </body>
+    </html>
+{% endblock %}

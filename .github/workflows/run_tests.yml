@@ -1,0 +1,37 @@
+name: pytests
+
+on: [push]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        pyver: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.pyver }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.pyver}}
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip setuptools wheel pytest && python -m pip install -e .
+      - name: Run Tests
+        run: pytest -k "not benchmark"
+  benchmark:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        pyver: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.pyver }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.pyver}}
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip setuptools wheel pytest pytest-memray && python -m pip install -e .
+      - name: Run Benchmarks
+        run: pytest --memray -k benchmark --durations=0

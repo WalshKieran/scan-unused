@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "scan-unused"
+version = "0.1.0"
+description = "Find, delete and notify users of unused files on a shared filesystem"
+authors = ["Kieran Walsh <k.walsh@unsw.edu.au>"]
+readme = "README.md"
+
+include = ["scan_unused/templates"]
+
+classifiers = [
+    "Operating System :: MacOS",
+    "Operating System :: POSIX :: Linux"
+]
+
+[tool.poetry.scripts]
+scan-unused = "scan_unused.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+jinja2 = "^3.1.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
