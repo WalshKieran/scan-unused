@@ -58,7 +58,7 @@ def test_unused(_test_dir_fixture):
 
     assert os.path.exists(os.path.join(_test_dir_fixture, '2.txt.gz'))
     assert os.path.exists(nodes[0].get_path())
-    tree.delete_nodes(nodes)
+    for _ in tree.delete_nodes(nodes): pass
     assert os.path.exists(os.path.join(_test_dir_fixture, '2.txt.gz'))
     assert not os.path.exists(nodes[0].get_path())
 
@@ -93,7 +93,7 @@ def test_symlink(_test_dir_fixture):
     tree = Tree.from_dir(_test_dir_fixture)
     assert tree.count_nodes() == 4
     nodes = list(tree.iter_nodes_unused(3))
-    tree.delete_nodes(nodes)
+    for _ in tree.delete_nodes(nodes): pass
 
     assert os.path.exists(_test_dir_fixture)
     assert not os.path.exists(harmless_symlink)

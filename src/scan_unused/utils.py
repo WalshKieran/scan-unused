@@ -32,7 +32,7 @@ def set_atime(path: str, atime: datetime.datetime=None, mtime: datetime.datetime
 
 def get_atime_day_offset(dir: str):
     '''
-    Attempt to correct for innacurate or missing atime.
+    Attempt to correct for inacurate or missing atime.
     '''
     dir = os.path.abspath(os.path.expanduser(dir))
     found_path_len = 0

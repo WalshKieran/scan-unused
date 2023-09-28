@@ -54,7 +54,7 @@ def test_benchmark_filesystem():
     with build_synthetic(max_depth=20, max_children=20, max_nodes=MAX_NODES, in_memory=False) as tree:
         assert tree.count_nodes() == MAX_NODES-1
         nodes = list(tree.iter_nodes(lambda _: random.random() > 0.90))
-        tree.delete_nodes(nodes)
+        for _ in tree.delete_nodes(nodes): pass
 
 @pytest.mark.parametrize('_', range(100))
 def test_benchmark_synthetic_small(_):
