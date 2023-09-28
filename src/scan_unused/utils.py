@@ -21,7 +21,7 @@ def get_deleting_path(path: str):
     Consistent temporary intermedate used while removing a path.
     '''
     folders, basename = os.path.split(path)
-    return path if basename.startswith('.deleting.') else os.path.join(folders, f'.deleting.{basename}')
+    return os.path.join(folders, f'.deleting.{basename}')
 
 def set_atime(path: str, atime: datetime.datetime=None, mtime: datetime.datetime=None):
     '''

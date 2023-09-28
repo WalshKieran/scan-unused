@@ -1,7 +1,7 @@
-import os, argparse, operator, itertools, subprocess, pwd, datetime
+import os, argparse, operator, itertools, subprocess, pwd, datetime, logging
 from typing import Iterable, Tuple, Generator
 
-import jinja2
+import jinja2, tqdm
 
 import scan_unused
 from scan_unused.core import Node, Tree
@@ -45,7 +45,7 @@ def main():
 
     offset = get_atime_day_offset(args.directory)
     if offset:
-        print(f'Directory "{args.directory}" mounted with relatime, days increased by {offset}')
+        logging.warn(f'Directory "{args.directory}" mounted with relatime, days increased by {offset}')
         args.days += offset
 
     size_getter = operator.attrgetter('size')
@@ -76,7 +76,9 @@ def main():
 
         if should_delete:
             print('Deleting, do not interrupt...')
-            Tree.delete_nodes(nodes_to_delete)
+            del_bar = tqdm.tqdm(total=len(nodes_to_delete), desc='Deleting')
+            for i, _ in enumerate(Tree.delete_nodes(nodes_to_delete)):
+                del_bar.update(i)
 
     # Generate future warning emails for each user
     if args.email_domain:
@@ -93,7 +95,7 @@ def main():
             nodes_to_email = list(tree.iter_nodes_unused(args.days, args.email_days))
         else:
             nodes_to_email = list(tree.iter_nodes_unused(args.days, 1))
-        for owner_id, node_group in itertools.groupby(sorted(nodes_to_email, key=owner_getter), owner_getter):
+        for owner_id, node_group in tqdm.tqdm(itertools.groupby(sorted(nodes_to_email, key=owner_getter), owner_getter), desc='Emails'):
             owner = pwd.getpwuid(owner_id).pw_name
             if args.email_whitelist and owner not in args.email_whitelist: continue
             addr, body_chunks = gen_email(template, tree, list(node_group), owner, args)

@@ -1,4 +1,4 @@
-import os, datetime, shutil, stat
+import os, datetime, shutil, stat, logging
 from typing import Callable, Optional, Iterable, List, Tuple
 
 from scan_unused.utils import get_days_ago_str, size_getter_str, get_deleting_path
@@ -134,12 +134,24 @@ class Tree:
         '''
         Delete list of nodes quickly.
         '''
-        nodes = list(nodes)
-        for node in nodes:
-            full = node.get_path()
-            path_tmp = get_deleting_path(full)
-            os.rename(full, path_tmp)
-        for node in nodes:
-            full = node.get_path()
-            path_tmp = get_deleting_path(full)
-            shutil.rmtree(path_tmp) if node.is_folder else os.remove(path_tmp)
+        last = ''
+        try:
+            nodes = list(nodes)
+            for node in nodes:
+                full = node.get_path()
+                path_tmp = get_deleting_path(full)
+                try:
+                    os.rename(full, path_tmp)
+                except OSError as e:
+                    logging.exception(f'Failed to rename {full}')
+            for node in nodes:
+                last = full = node.get_path()
+                path_tmp = get_deleting_path(full)
+                yield full
+                try:
+                    shutil.rmtree(path_tmp) if node.is_folder else os.remove(path_tmp)
+                except OSError as e:
+                    logging.exception(f'Failed to delete {path_tmp}')
+        except (BaseException) as e:
+            logging.exception(f'Interrupted during deletion of {last}')
+            raise e
