@@ -20,8 +20,12 @@ def get_deleting_path(path: str):
     '''
     Consistent temporary intermedate used while removing a path.
     '''
-    folders, basename = os.path.split(path)
-    return os.path.join(folders, f'.deleting.{basename}')
+    deleting_dir = os.path.join(path, '.scan-unused-deleting')
+    try:
+        os.mkdir(deleting_dir)
+    except FileExistsError:
+        pass
+    return deleting_dir
 
 def set_atime(path: str, atime: datetime.datetime=None, mtime: datetime.datetime=None):
     '''

@@ -5,7 +5,7 @@ import jinja2, tqdm
 
 import scan_unused
 from scan_unused.core import Node, Tree
-from scan_unused.utils import size_getter_str, get_atime_day_offset
+from scan_unused.utils import size_getter_str, get_atime_day_offset, get_deleting_path
 
 def gen_email(template, tree: Node, nodes: Iterable[Node], owner: str, args) -> Tuple[str, Generator[str, None, None]]:
     '''
@@ -76,9 +76,7 @@ def main():
 
         if should_delete:
             print('Deleting, do not interrupt...')
-            del_bar = tqdm.tqdm(total=len(nodes_to_delete), desc='Deleting')
-            for i, _ in enumerate(Tree.delete_nodes(nodes_to_delete)):
-                del_bar.update(i)
+            Tree.delete_nodes(nodes_to_delete, get_deleting_path(args.directory))
 
     # Generate future warning emails for each user
     if args.email_domain:

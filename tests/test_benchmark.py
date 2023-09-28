@@ -3,6 +3,7 @@ import tempfile, os, random, contextlib, time
 import pytest
 
 from scan_unused.core import Node, Tree
+from scan_unused.utils import get_deleting_path
 
 '''
 Use with pytest-memray
@@ -54,7 +55,7 @@ def test_benchmark_filesystem():
     with build_synthetic(max_depth=20, max_children=20, max_nodes=MAX_NODES, in_memory=False) as tree:
         assert tree.count_nodes() == MAX_NODES-1
         nodes = list(tree.iter_nodes(lambda _: random.random() > 0.90))
-        for _ in tree.delete_nodes(nodes): pass
+        tree.delete_nodes(nodes, get_deleting_path(tree.root.name))
 
 @pytest.mark.parametrize('_', range(100))
 def test_benchmark_synthetic_small(_):

@@ -1,7 +1,7 @@
-import os, datetime, shutil, stat, logging
+import os, datetime, shutil, stat, logging, tempfile
 from typing import Callable, Optional, Iterable, List, Tuple
 
-from scan_unused.utils import get_days_ago_str, size_getter_str, get_deleting_path
+from scan_unused.utils import get_days_ago_str, size_getter_str
 
 '''
 Query the in-memory file structure multiple times to forcast what will get deleted / 
@@ -130,28 +130,33 @@ class Tree:
             yield from self.iter_nodes_range((None, to_t.timestamp()))
 
     @staticmethod
-    def delete_nodes(nodes: Iterable[Node]):
+    def delete_nodes(nodes: Iterable[Node], move_path: str):
         '''
-        Delete list of nodes quickly.
+        Delete list of nodes quickly. Assumes nodes are in traversed order.
         '''
-        last = ''
         try:
             nodes = list(nodes)
+            parent = None
+            parent_tmp_path = None
             for node in nodes:
                 full = node.get_path()
-                path_tmp = get_deleting_path(full)
+                if parent != node.parent:
+                    try:
+                        # Create tempfile temporary with same permissions
+                        parent_tmp_path = tempfile.mkdtemp(dir=move_path)
+                        shutil.copymode(os.path.dirname(full), parent_tmp_path, follow_symlinks=False)
+                        parent = node.parent
+                    except OSError as e:
+                        logging.exception(f'Failed to create temporary directory {parent_tmp_path}')
+                        raise e
                 try:
-                    os.rename(full, path_tmp)
+                    shutil.move(full, parent_tmp_path,)
                 except OSError as e:
-                    logging.exception(f'Failed to rename {full}')
-            for node in nodes:
-                last = full = node.get_path()
-                path_tmp = get_deleting_path(full)
-                yield full
-                try:
-                    shutil.rmtree(path_tmp) if node.is_folder else os.remove(path_tmp)
-                except OSError as e:
-                    logging.exception(f'Failed to delete {path_tmp}')
+                    logging.exception(f'Failed to move {full}')
+            try:
+                shutil.rmtree(move_path)
+            except OSError as e:
+                logging.exception(f'Failed to delete {move_path}')
         except (BaseException) as e:
-            logging.exception(f'Interrupted during deletion of {last}')
+            logging.exception(f'Interrupted during deletion')
             raise e

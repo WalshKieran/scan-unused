@@ -1,7 +1,7 @@
 import pytest, tempfile, datetime, os
 
 from scan_unused.core import Node, Tree
-from scan_unused.utils import set_atime, get_days_ago_str
+from scan_unused.utils import set_atime, get_days_ago_str, get_deleting_path
 
 @pytest.fixture
 def _test_dir_fixture(request):
@@ -58,7 +58,7 @@ def test_unused(_test_dir_fixture):
 
     assert os.path.exists(os.path.join(_test_dir_fixture, '2.txt.gz'))
     assert os.path.exists(nodes[0].get_path())
-    for _ in tree.delete_nodes(nodes): pass
+    tree.delete_nodes(nodes, get_deleting_path(_test_dir_fixture))
     assert os.path.exists(os.path.join(_test_dir_fixture, '2.txt.gz'))
     assert not os.path.exists(nodes[0].get_path())
 
@@ -93,7 +93,7 @@ def test_symlink(_test_dir_fixture):
     tree = Tree.from_dir(_test_dir_fixture)
     assert tree.count_nodes() == 4
     nodes = list(tree.iter_nodes_unused(3))
-    for _ in tree.delete_nodes(nodes): pass
+    tree.delete_nodes(nodes, get_deleting_path(_test_dir_fixture))
 
     assert os.path.exists(_test_dir_fixture)
     assert not os.path.exists(harmless_symlink)
